@@ -3,16 +3,40 @@ import telebot
 from telebot import types
 
 #Import random
+import random
 from random import choice
 
 #Import token (if you have error on this line, create token.py and create label token like str)
-from token import token
+from teletoken import token as tele_token
+
+#Import config
+import config
 
 #Import sqllite for database
 import sqlite3
 
-bot = telebot.TeleBot(token)
+#Import time lib
+from datetime import datetime
+
+bot = telebot.TeleBot(tele_token)
+
+ks = telebot.types.ReplyKeyboardMarkup()
+ks.row("Информация", "Звонок")
+ks.row("Купить","👉Профиль👈","Регистрация")
 
 @bot.message_handler(commands=["start"])
 def start(message):
-    bot.send_message()
+    bot.send_message(message.chat.id, config.def_start, reply_markup=ks)
+
+@bot.message_handler(content_types=["text"])
+def text_f_u(message):
+    user_id = message.from_user.username
+    current_datetime = str(datetime.now())
+    if not user_id:
+        user_id = f"user_{random.randint(1, 1000)}"
+    res = current_datetime + " " + user_id + "  '" + message.text + "'"
+    print(res)
+    if message.text == "Купить":
+        bot.send_photo(message.from_user.id, photo=open('money.jpg','rb'), caption=config.def_buy)
+
+bot.polling(none_stop=True,non_stop=True)
