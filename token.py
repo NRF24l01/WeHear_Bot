@@ -1,1 +1,1 @@
-token = "5921865867:AAFnWM9Gy55uYw58Al4M1gniDPeBrP807fA"  #Put your token from bot father
+token = ""  #Put your token from bot father
