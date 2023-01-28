@@ -33,14 +33,32 @@ ks.row(" 🔎Информация 🔎", "☎️Звонок☎️")
 ks.row("👽Профиль👽","👣Регистрация👣")
 ks.row("☢Разработчкики☢️")
 
-def data_upd(table, label, where, what_put, data_base = config.data_base):
-    pass
-
 def get_data(arg):
     '''This function catch data by command.
     In arg you put text with command(/mnasd 20)
     This function return what user input(20)'''
     return arg.split()[1:]
+
+def is_new(message):
+    try:
+        conn = sqlite3.connect("data.db")
+        cursor = conn.cursor()
+
+        current_datetime = datetime.now()
+        hz = cursor.execute(f"SELECT hz FROM profiles WHERE id =='{str(message.from_user.id)}'")
+
+        conn.commit()
+    except sqlite3.Error as error:
+        print("Error sql8: ", error)
+
+    finally:
+        if conn:
+            conn.close()
+
+    if len(hz)==0:
+        return True
+    else:
+        return False
 
 @bot.message_handler(commands=["mname"])
 def mname(message):
@@ -58,7 +76,7 @@ def text_f_u(message):
     current_datetime = str(datetime.now())
     if not user_id:
         user_id = f"user_{random.randint(1, 1000)}"
-    res = current_datetime + " " + user_id + "  '" + message.text + "'"
+    res = current_datetime + " " + user_id +" "+str(message.from_user.id)+ "  '" + message.text + "'"
     print(res)
     if message.text == "💸Купить💸":
         try:
@@ -70,6 +88,6 @@ def text_f_u(message):
     elif message.text == "☢Разработчкики☢️":
         bot.send_message(message.from_user.id, config.def_cr)
     elif message.text == "🔎Информация 🔎":
-        bot.send_message(message.from_user.id, "Я жду текст сюда", reply_markup=ks)
+        bot.send_message(message.from_user.id, config.def_info, reply_markup=ks)
 
 bot.polling(none_stop=True,non_stop=True)
