@@ -18,6 +18,7 @@ except:
 
 #Import config
 import config
+from config import data_base as dtname
 
 #Import sqllite for database
 import sqlite3
@@ -33,6 +34,23 @@ ks.row(" 🔎Информация 🔎", "☎️Звонок☎️")
 ks.row("👽Профиль👽","👣Регистрация👣")
 ks.row("☢Разработчкики☢️")
 
+def new_user(message):
+    if is_new(message):
+        try:
+            conn = sqlite3.connect(dtname)
+            cursor = conn.cursor()
+
+            current_datetime = datetime.now()
+            hz = cursor.execute(f"INSERT INTO profiles (user_id, user_name, nasu, name, status, age, hz, levelOFbuy) VALUES('{str(message.from_user.id)}')")
+
+            conn.commit()
+        except sqlite3.Error as error:
+            print("Error sql8: ", error)
+
+        finally:
+            if conn:
+                conn.close()
+
 def get_data(arg):
     '''This function catch data by command.
     In arg you put text with command(/mnasd 20)
@@ -41,7 +59,7 @@ def get_data(arg):
 
 def is_new(message):
     try:
-        conn = sqlite3.connect("data.db")
+        conn = sqlite3.connect(dtname)
         cursor = conn.cursor()
 
         current_datetime = datetime.now()
