@@ -35,17 +35,20 @@ ks.row("👽Профиль👽","👣Регистрация👣")
 ks.row("☢Разработчкики☢️")
 
 def new_user(message):
+    print(is_new(message))
     if is_new(message):
         try:
             conn = sqlite3.connect(dtname)
             cursor = conn.cursor()
 
             current_datetime = datetime.now()
-            hz = cursor.execute(f"INSERT INTO profiles (user_id, user_name, nasu, name, status, age, hz, levelOFbuy) VALUES('{str(message.from_user.id)}')")
+            hz = cursor.execute(f"INSERT INTO profiles (user_id, user_name, nasu, name, status, age, hz, levelOFbuy)"
+                                f" VALUES('{str(message.from_user.id)}', '{message.from_user.username}', 'None', 'None',"
+                                f"'None', '100', '27', '1')")
 
             conn.commit()
         except sqlite3.Error as error:
-            print("Error sql8: ", error)
+            print("Error sql1: ", error)
 
         finally:
             if conn:
@@ -62,17 +65,16 @@ def is_new(message):
         conn = sqlite3.connect(dtname)
         cursor = conn.cursor()
 
-        current_datetime = datetime.now()
-        hz = cursor.execute(f"SELECT hz FROM profiles WHERE id =='{str(message.from_user.id)}'")
+        hz = cursor.execute(f"SELECT hz FROM profiles WHERE user_id =='{str(message.from_user.id)}'").fetchall()
 
         conn.commit()
     except sqlite3.Error as error:
-        print("Error sql8: ", error)
+        print("Error sql2: ", error)
 
     finally:
         if conn:
             conn.close()
-
+    print(hz)
     if len(hz)==0:
         return True
     else:
@@ -80,16 +82,33 @@ def is_new(message):
 
 @bot.message_handler(commands=["mname"])
 def mname(message):
-    name = get_data(message.text, reply_markup=ks)
+    new_user(message)
+    name = get_data(message.text)
+    try:
+        conn = sqlite3.connect(dtname)
+        cursor = conn.cursor()
+
+        current_datetime = datetime.now()
+        hz = cursor.execute(f"UPDATE profiles SET name = '{name[0]}' WHERE user_id == '{str(message.from_user.id)}'").fetchall()
+
+        conn.commit()
+    except sqlite3.Error as error:
+        print("Error sql3: ", error)
+
+    finally:
+        if conn:
+            conn.close()
 
 
 
 @bot.message_handler(commands=["start"])
 def start(message):
+    new_user(message)
     bot.send_message(message.chat.id, config.def_start, reply_markup=ks)
 
 @bot.message_handler(content_types=["text"])
 def text_f_u(message):
+    new_user(message)
     user_id = message.from_user.username
     current_datetime = str(datetime.now())
     if not user_id:
