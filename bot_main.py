@@ -81,8 +81,9 @@ def is_new(message):
 def chvoice(message):
     new_user(message)
     bot.send_message(message.from_user.id, "Выберите голос. Отправте номер голоса который вам понравился.")
-    a1 = open('speakers/aidar.wav')
-    bot.send_audio(message.from_user.id, a1)
+    audio = open('speakers/aidar.wav', 'rb')
+    bot.send_audio(message.from_user.id, audio, '1️⃣  Голос')
+    audio.close()
 @bot.message_handler(commands=["mage"])
 def mfio(message):
     new_user(message)
