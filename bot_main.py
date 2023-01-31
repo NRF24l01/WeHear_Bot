@@ -35,7 +35,6 @@ ks.row("👽Профиль👽","👣Регистрация👣")
 ks.row("☢Разработчкики☢️")
 
 def new_user(message):
-    print(is_new(message))
     if is_new(message):
         try:
             conn = sqlite3.connect(dtname)
@@ -74,11 +73,60 @@ def is_new(message):
     finally:
         if conn:
             conn.close()
-    print(hz)
     if len(hz)==0:
         return True
     else:
         return False
+@bot.message_handler(commands=["chvoice"])
+def chvoice(message):
+    new_user(message)
+    bot.send_message(message.from_user.id, "Выберите голос. Отправте номер голоса который вам понравился.")
+    a1 = open('speakers/aidar.wav')
+    bot.send_audio(message.from_user.id, a1)
+@bot.message_handler(commands=["mage"])
+def mfio(message):
+    new_user(message)
+    age = get_data(message.text)
+    try:
+        age = int(age[0])
+        try:
+            conn = sqlite3.connect(dtname)
+            cursor = conn.cursor()
+
+            current_datetime = datetime.now()
+            hz = cursor.execute(
+                f"UPDATE profiles SET age = '{str(age)}' WHERE user_id == '{str(message.from_user.id)}'").fetchall()
+
+            conn.commit()
+            bot.send_message(message.from_user.id, "Возраст изменён")
+        except sqlite3.Error as error:
+            print("Error sql5: ", error)
+
+        finally:
+            if conn:
+                conn.close()
+    except:
+        bot.send_message(message.from_user.id, "Попробуйте снова.")
+@bot.message_handler(commands=["mfio"])
+def mfio(message):
+    new_user(message)
+    fio = get_data(message.text)
+    try:
+        conn = sqlite3.connect(dtname)
+        cursor = conn.cursor()
+
+        current_datetime = datetime.now()
+        hz = cursor.execute(
+            f"UPDATE profiles SET nasu = '{' '.join(fio)}' WHERE user_id == '{str(message.from_user.id)}'").fetchall()
+
+        conn.commit()
+        bot.send_message(message.from_user.id, "ФИО изменена")
+    except sqlite3.Error as error:
+        print("Error sql3: ", error)
+
+    finally:
+        if conn:
+            conn.close()
 
 @bot.message_handler(commands=["mname"])
 def mname(message):
@@ -89,11 +137,12 @@ def mname(message):
         cursor = conn.cursor()
 
         current_datetime = datetime.now()
-        hz = cursor.execute(f"UPDATE profiles SET name = '{name[0]}' WHERE user_id == '{str(message.from_user.id)}'").fetchall()
+        hz = cursor.execute(f"UPDATE profiles SET name = '{' '.join(name)}' WHERE user_id == '{str(message.from_user.id)}'").fetchall()
 
         conn.commit()
+        bot.send_message(message.from_user.id, "Имя изменено")
     except sqlite3.Error as error:
-        print("Error sql3: ", error)
+        print("Error sql4: ", error)
 
     finally:
         if conn:

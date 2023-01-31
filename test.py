@@ -15,9 +15,9 @@ model.to(device)
 
 example_text = 'Приветствует команда ВиХиар'
 sample_rate = 48000
-speaker='aidar' #aidar, baya, kseniya, xenia, eugene
+speaker='eugene' #aidar, baya, kseniya, xenia, eugene
 
 audio_paths = model.save_wav(text=example_text,
                              speaker=speaker,
                              sample_rate=sample_rate,
-                             audio_path="aidar.wav")
+                             audio_path="speakers/eugene.wav")
