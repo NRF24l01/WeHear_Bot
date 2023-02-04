@@ -34,6 +34,36 @@ ks.row(" 🔎Информация 🔎", "☎️Звонок☎️")
 ks.row("👽Профиль👽","👣Регистрация👣")
 ks.row("☢Разработчкики☢️")
 
+def status_ch(message, txt):
+    try:
+        conn = sqlite3.connect(dtname)
+        cursor = conn.cursor()
+
+        cursor.execute(f"UPDATE profiles SET status = '{str(txt)}' WHERE user_id =='{str(message.from_user.id)}'")
+        conn.commit()
+    except sqlite3.Error as error:
+        print("Error sql2: ", error)
+
+    finally:
+        if conn:
+            conn.close()
+
+def status_get(message):
+    try:
+        conn = sqlite3.connect(dtname)
+        cursor = conn.cursor()
+
+        st = cursor.execute(f"SELECT status FROM profiles WHERE user_id =='{str(message.from_user.id)}'").fetchall()[0][0]
+
+        conn.commit()
+    except sqlite3.Error as error:
+        print("Error sql2: ", error)
+
+    finally:
+        if conn:
+            conn.close()
+    return st
+
 def new_user(message):
     if is_new(message):
         try:
@@ -41,9 +71,9 @@ def new_user(message):
             cursor = conn.cursor()
 
             current_datetime = datetime.now()
-            hz = cursor.execute(f"INSERT INTO profiles (user_id, user_name, nasu, name, status, age, hz, levelOFbuy)"
+            hz = cursor.execute(f"INSERT INTO profiles (user_id, user_name, nasu, name, status, age, hz, levelOFbuy, voiceN)"
                                 f" VALUES('{str(message.from_user.id)}', '{message.from_user.username}', 'None', 'None',"
-                                f"'None', '100', '27', '1')")
+                                f"'None', '100', '27', '1','1')")
 
             conn.commit()
         except sqlite3.Error as error:
@@ -82,8 +112,21 @@ def chvoice(message):
     new_user(message)
     bot.send_message(message.from_user.id, "Выберите голос. Отправте номер голоса который вам понравился.")
     audio = open('speakers/aidar.wav', 'rb')
-    bot.send_audio(message.from_user.id, audio, '1️⃣  Голос')
+    bot.send_voice(message.from_user.id, audio, '1️⃣  Голос')
     audio.close()
+    audio = open('speakers/baya.wav', 'rb')
+    bot.send_voice(message.from_user.id, audio, '3️⃣  Голос')
+    audio.close()
+    audio = open('speakers/eugene.wav', 'rb')
+    bot.send_voice(message.from_user.id, audio, '4️⃣  Голос')
+    audio.close()
+    audio = open('speakers/kseniya.wav', 'rb')
+    bot.send_voice(message.from_user.id, audio, '5️⃣  Голос')
+    audio.close()
+    audio = open('speakers/xenia.wav', 'rb')
+    bot.send_voice(message.from_user.id, audio, '6️⃣  Голос')
+    audio.close()
+    status_ch(message, "chvoice")
 @bot.message_handler(commands=["mage"])
 def mfio(message):
     new_user(message)
@@ -165,16 +208,38 @@ def text_f_u(message):
         user_id = f"user_{random.randint(1, 1000)}"
     res = current_datetime + " " + user_id +" "+str(message.from_user.id)+ "  '" + message.text + "'"
     print(res)
-    if message.text == "💸Купить💸":
+    if status_get(message) != 'chvoice':
+        if message.text == "💸Купить💸":
+            try:
+                bot.send_photo(message.from_user.id, photo=open('money.jpg','rb'), caption=config.def_buy, reply_markup=ks)
+            except:
+                print("No such file: money.jpg")
+        elif message.text == "👣Регистрация👣":
+            bot.send_message(message.from_user.id, config.def_reg, reply_markup=ks)
+        elif message.text == "☢Разработчкики☢️":
+            bot.send_message(message.from_user.id, config.def_cr)
+        elif message.text == "🔎Информация 🔎":
+            bot.send_message(message.from_user.id, config.def_info, reply_markup=ks)
+    elif status_get(message) == 'chvoice':
         try:
-            bot.send_photo(message.from_user.id, photo=open('money.jpg','rb'), caption=config.def_buy, reply_markup=ks)
+            voice = int(message.text)
+            bot.send_message(message.from_user.id, 'Голос изменён.')
+            try:
+                conn = sqlite3.connect(dtname)
+                cursor = conn.cursor()
+
+                current_datetime = datetime.now()
+                hz = cursor.execute(f"UPDATE profiles SET voiceN = '{voice}' WHERE user_id == '{str(message.from_user.id)}'").fetchall()
+
+                conn.commit()
+                bot.send_message(message.from_user.id, "Имя изменено")
+            except sqlite3.Error as error:
+                print("Error sql4: ", error)
+
+            finally:
+                if conn:
+                    conn.close()
         except:
-            print("No such file: money.jpg")
-    elif message.text == "👣Регистрация👣":
-        bot.send_message(message.from_user.id, config.def_reg, reply_markup=ks)
-    elif message.text == "☢Разработчкики☢️":
-        bot.send_message(message.from_user.id, config.def_cr)
-    elif message.text == "🔎Информация 🔎":
-        bot.send_message(message.from_user.id, config.def_info, reply_markup=ks)
+            bot.send_message(message.from_user.id, 'Попробуйте ещё раз. (Отправте только цифру)')
 
 bot.polling(none_stop=True,non_stop=True)
