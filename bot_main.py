@@ -26,6 +26,8 @@ import sqlite3
 #Import time lib
 from datetime import datetime
 
+import hashlib
+
 bot = telebot.TeleBot(tele_token)
 
 ks = telebot.types.ReplyKeyboardMarkup()
@@ -47,6 +49,22 @@ def status_ch(message, txt):
     finally:
         if conn:
             conn.close()
+
+def level_get(message):
+    try:
+        conn = sqlite3.connect(dtname)
+        cursor = conn.cursor()
+
+        st = cursor.execute(f"SELECT levelOFbuy FROM profiles WHERE user_id =='{str(message.from_user.id)}'").fetchall()[0][0]
+
+        conn.commit()
+    except sqlite3.Error as error:
+        print("Error sql2: ", error)
+
+    finally:
+        if conn:
+            conn.close()
+    return st
 
 def status_get(message):
     try:
@@ -175,6 +193,7 @@ def mfio(message):
 @bot.message_handler(commands=["mname"])
 def mname(message):
     new_user(message)
+    #print("h")
     name = get_data(message.text)
     try:
         conn = sqlite3.connect(dtname)
@@ -220,26 +239,52 @@ def text_f_u(message):
             bot.send_message(message.from_user.id, config.def_cr)
         elif message.text == "🔎Информация 🔎":
             bot.send_message(message.from_user.id, config.def_info, reply_markup=ks)
+        elif message.text == "☎️ ыыаЗвонок☎️":
+            if level_get(message)==1:
+                bot.send_message(message.from_user.id, "Отправляйте мне текст. Когда закончите отправте /stop", reply_markup=ks)
+                status_ch(message, "lvl1")
     elif status_get(message) == 'chvoice':
         try:
             voice = int(message.text)
-            bot.send_message(message.from_user.id, 'Голос изменён.')
-            try:
-                conn = sqlite3.connect(dtname)
-                cursor = conn.cursor()
+            if voice > 0 and voice < 7:
+                bot.send_message(message.from_user.id, 'Голос изменён.')
+                try:
+                    conn = sqlite3.connect(dtname)
+                    cursor = conn.cursor()
 
-                current_datetime = datetime.now()
-                hz = cursor.execute(f"UPDATE profiles SET voiceN = '{voice}' WHERE user_id == '{str(message.from_user.id)}'").fetchall()
+                    current_datetime = datetime.now()
+                    hz = cursor.execute(f"UPDATE profiles SET voiceN = '{voice}' WHERE user_id == '{str(message.from_user.id)}'").fetchall()
 
-                conn.commit()
-                bot.send_message(message.from_user.id, "Имя изменено")
-            except sqlite3.Error as error:
-                print("Error sql4: ", error)
+                    conn.commit()
+                except sqlite3.Error as error:
+                    print("Error sql4: ", error)
 
-            finally:
-                if conn:
-                    conn.close()
+                finally:
+                    if conn:
+                        conn.close()
+            else:
+                bot.send_message(message.from_user.id,
+                                 'Попробуйте ещё раз. (Отправте только цифру от 1 до 6 включительно)')
+            status_ch(message, "None")
         except:
-            bot.send_message(message.from_user.id, 'Попробуйте ещё раз. (Отправте только цифру)')
+            bot.send_message(message.from_user.id, 'Попробуйте ещё раз. (Отправте только цифру от 1 до 6 включительно)')
+    elif status_get(message) == "lvl1":
+        with open('vords.txt', 'r', encoding="UTF-8") as v:
+            has = v.split('\n')
+            ha = choice(has)
+            nam = hashlib.sha1(ha.encoding()).hexdigest()
+        try:
+            conn = sqlite3.connect(dtname)
+            cursor = conn.cursor()
+
+            cursor.execute(f"INCERT INTO tts (us_id, txt, status, voice, file_name) VALUES ('{str(message.from_user.id)}', '{message.text}', 'go', '{nam}')").fetchall()
+
+            conn.commit()
+        except sqlite3.Error as error:
+            print("Error sql4: ", error)
+
+        finally:
+            if conn:
+                conn.close()
 
 bot.polling(none_stop=True,non_stop=True)
