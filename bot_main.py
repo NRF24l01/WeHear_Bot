@@ -1,3 +1,5 @@
+import time
+
 #Import telegramApi
 try:
     from telebot import types
@@ -27,6 +29,10 @@ import sqlite3
 from datetime import datetime
 
 import hashlib
+
+import multiprocessing
+print("Number of cpu : ", multiprocessing.cpu_count())
+from multiprocessing import Process
 
 bot = telebot.TeleBot(tele_token)
 
@@ -125,6 +131,13 @@ def is_new(message):
         return True
     else:
         return False
+
+def voice():
+    while True:
+        print("sad")
+        time.sleep(1)
+
+
 @bot.message_handler(commands=["chvoice"])
 def chvoice(message):
     new_user(message)
@@ -239,7 +252,7 @@ def text_f_u(message):
             bot.send_message(message.from_user.id, config.def_cr)
         elif message.text == "🔎Информация 🔎":
             bot.send_message(message.from_user.id, config.def_info, reply_markup=ks)
-        elif message.text == "☎️ ыыаЗвонок☎️":
+        elif message.text == "☎️Звонок☎️":
             if level_get(message)==1:
                 bot.send_message(message.from_user.id, "Отправляйте мне текст. Когда закончите отправте /stop", reply_markup=ks)
                 status_ch(message, "lvl1")
@@ -286,5 +299,7 @@ def text_f_u(message):
         finally:
             if conn:
                 conn.close()
+        hhh = Process(target=voice)
+        hhh.start()
 
 bot.polling(none_stop=True,non_stop=True)
