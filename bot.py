@@ -1,12 +1,8 @@
 import time
 
 #Import telegramApi
-try:
-    from telebot import types
-    import telebot
-except:
-    import pip
-    pip.main(['install', 'PyTelegramBotAPI'])
+from telebot import types
+import telebot
 
 #Import random
 import random
@@ -30,8 +26,6 @@ from datetime import datetime
 
 import hashlib
 
-import multiprocessing
-print("Number of cpu : ", multiprocessing.cpu_count())
 from multiprocessing import Process
 
 bot = telebot.TeleBot(tele_token)
@@ -133,6 +127,7 @@ def is_new(message):
         return False
 
 def voice():
+    print(231)
     while True:
         print("sad")
         time.sleep(1)
@@ -240,7 +235,7 @@ def text_f_u(message):
         user_id = f"user_{random.randint(1, 1000)}"
     res = current_datetime + " " + user_id +" "+str(message.from_user.id)+ "  '" + message.text + "'"
     print(res)
-    if status_get(message) != 'chvoice':
+    if status_get(message) == 'None':
         if message.text == "💸Купить💸":
             try:
                 bot.send_photo(message.from_user.id, photo=open('money.jpg','rb'), caption=config.def_buy, reply_markup=ks)
@@ -283,9 +278,9 @@ def text_f_u(message):
             bot.send_message(message.from_user.id, 'Попробуйте ещё раз. (Отправте только цифру от 1 до 6 включительно)')
     elif status_get(message) == "lvl1":
         with open('vords.txt', 'r', encoding="UTF-8") as v:
-            has = v.split('\n')
+            has = v.read().split('\n')
             ha = choice(has)
-            nam = hashlib.sha1(ha.encoding()).hexdigest()
+            nam = hashlib.sha1(ha.encode()).hexdigest()
         try:
             conn = sqlite3.connect(dtname)
             cursor = conn.cursor()
@@ -299,7 +294,8 @@ def text_f_u(message):
         finally:
             if conn:
                 conn.close()
-        hhh = Process(target=voice)
-        hhh.start()
+        print(867876)
+        p = Process(target=voice)
+        p.start()
 
 bot.polling(none_stop=True,non_stop=True)
